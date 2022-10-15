@@ -1,1 +1,3 @@
-(library (name FINAL_PROJECT))
+(library
+ (name FINAL_PROJECT)
+ (libraries yojson))
