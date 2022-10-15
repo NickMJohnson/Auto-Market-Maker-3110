@@ -1,0 +1,3 @@
+(executable
+ (name main)
+ (libraries FINAL_PROJECT ounit2))
