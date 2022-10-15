@@ -1,0 +1,5 @@
+# dune exec ./test/main.exe
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Workspace root: /Users/nicholasjohnson/cs3110/Final_project
+# Auto-detected concurrency: 8
