@@ -23,3 +23,9 @@ let from_json (str : string) : t =
 let new_database : t = { users = [] }
 (*TODO: Make this better. Like it could use from_json on an empty db file we
   keep updated*)
+
+(*let ex : Yojson.t = `Assoc [ ("hello", `Int 12) ]*)
+
+(*let to_json db = (`Assoc [("users", `Assoc [] 12)])*)
+(*TODO: use Yojson.to_string to create the json. Need to figure out how to go
+  from our type t to Yojson type t *)
