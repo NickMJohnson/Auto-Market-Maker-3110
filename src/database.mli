@@ -20,7 +20,7 @@ val deposit : t -> string -> string -> int -> t
 
 val withdraw : t -> string -> string -> int -> t
 (**[withdraw db name curr amt] is db with user name having amt less of currency
-   curr Requires: name is valid name of a user in db, curr is either USD or BRB*)
+   curr Requires: name is valid name of a user in db, curr is either usd or brb*)
 
 val user_balance : t -> string -> string -> int
 (** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
