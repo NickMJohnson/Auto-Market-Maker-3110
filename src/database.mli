@@ -25,5 +25,5 @@ val withdraw : t -> string -> string -> int -> t
 val user_balance : t -> string -> string -> int
 (** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
 
-(* val save_to_json : t -> string *)
-(**[save_to_json db] is a json in string form that represents db.t*)
+val to_json : t -> string
+(**[to_json db] is a json in string form that represents db.t*)

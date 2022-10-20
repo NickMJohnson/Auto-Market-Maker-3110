@@ -1,3 +1,5 @@
 (library
  (name database)
- (libraries yojson))
+ (libraries yojson ppx_deriving_yojson.runtime)
+ (preprocess
+  (pps ppx_deriving_yojson)))

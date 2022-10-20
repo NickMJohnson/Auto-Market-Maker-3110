@@ -5,6 +5,7 @@ type user = {
   usd : int;
   brb : int;
 }
+[@@deriving yojson]
 
 let user_of_json j =
   {
@@ -17,6 +18,7 @@ type t = {
   dbname : string;
   users : user list;
 }
+[@@deriving yojson]
 
 let from_json (str : string) : t =
   let j = Yojson.Basic.from_string str in
@@ -76,5 +78,6 @@ let user_balance db name curr =
   in
   find_user db.users
 
-(**[save_to_json db] is a json in string form that represents db.t*)
-(* let save_to_json db = *)
+(**[to_json db] is a json in string form that represents db*)
+let to_json (db : t) : string =
+  db |> to_yojson |> Yojson.Safe.to_basic |> to_string
