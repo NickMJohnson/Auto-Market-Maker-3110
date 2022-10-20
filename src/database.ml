@@ -13,13 +13,19 @@ let user_of_json j =
     brb = j |> member "brb" |> to_int;
   }
 
-type t = { users : user list }
+type t = {
+  dbname : string;
+  users : user list;
+}
 
 let from_json (str : string) : t =
   let j = Yojson.Basic.from_string str in
-  { users = j |> member "users" |> to_list |> List.map user_of_json }
+  {
+    dbname = j |> member "dbname" |> to_string;
+    users = j |> member "users" |> to_list |> List.map user_of_json;
+  }
 
-let new_database : t = { users = [] }
+let new_database : t = { users = []; dbname = "" }
 (*TODO: Make this better. Like it could use from_json on an empty db file we
   keep updated*)
 
@@ -31,13 +37,15 @@ let new_database : t = { users = [] }
 
 (*[new_user db name] is the database b with a new user with username name
   added *)
-let new_user db nm = { users = db.users @ [ { name = nm; usd = 0; brb = 0 } ] }
+let new_user db nm =
+  { db with users = { name = nm; usd = 0; brb = 0 } :: db.users }
 
 (*[users db] is a list of the usernames of all the users in db*)
 let users db = List.map (fun x -> x.name) db.users
 
 (*[deposit db name curr amt] is db with user name having amt more of currency
   curr Requires: name is valid name of a user in db, curr is either USD or BRB*)
+(*TODO: Integrate and fix. Can use library functions to make much better prob.*)
 let deposit db name curr amt =
   let cap = String.uppercase_ascii curr in
   let rec find_user users prev =
@@ -49,7 +57,7 @@ let deposit db name curr amt =
           else prev @ [ { h with brb = h.brb + amt } ] @ s
         else find_user s (prev @ [ h ])
   in
-  { users = find_user db.users [] }
+  { db with users = find_user db.users [] }
 
 (*[withdraw db name curr amt] is db with user name having amt less of currency
   curr Requires: name is valid name of a user in db, curr is either usd or brb*)
