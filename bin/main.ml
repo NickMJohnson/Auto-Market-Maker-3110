@@ -1,5 +1,4 @@
-open Database
-
+open Database 
 
 let rec home (db : Database.t) (u : string)= 
   print_string
@@ -15,8 +14,6 @@ let rec home (db : Database.t) (u : string)=
 
 
 
-and view_users (db : Database.t) (u : string) = home db u
-
 and admin db u =
   print_string
   "\n\n 
@@ -25,11 +22,9 @@ and admin db u =
     - Home\n";
   match read_line () with
   |exception End_of_file -> ()
-  |inp -> if "view users" = (String.lowercase_ascii inp) then view_users db u
+  |inp -> if "view users" = (String.lowercase_ascii inp) then home db u
   else if "home" = (String.lowercase_ascii inp) then home db u
   else ANSITerminal.(print_string [blue; Bold] ("\nInvalid input. \n"));
-
-
 
 
 and account (db : Database.t) (u : string) = 
@@ -62,7 +57,6 @@ and user_l f =
 and quit db u = home db u
 and withdraw db u = home db u
 
-
 and new_user1 f = 
   print_endline "What is your name\n";
   print_string "> ";
@@ -92,6 +86,8 @@ and deposit_ db u =
   else if "usd" = (String.lowercase_ascii inp) then deposit__ db u (String.lowercase_ascii inp)
   else ANSITerminal.(print_string [blue; Bold] ("\nInvalid input. \n"));
 
+
+
 and login f = 
   print_endline "Would you like to login or create a new user\n";
   print_string "> ";
@@ -102,18 +98,18 @@ and login f =
   else ANSITerminal.(print_string [blue; Bold] ("\nInvalid input. \n"));
 
 (** [main ()] prompts for the game to play, then starts it. *)
-let main () =
+let main ()=
   ANSITerminal.print_string [ ANSITerminal.red ]
     "\n\nWelcome to the trading platform.\n";
-  print_endline "Please enter load database to load a database \n
-  or new database to create a new one";
+  print_endline "Please enter [load database [database name]] to load a database \n
+  or [new database] to create a new one";
   print_string "> ";
   match read_line () with
   | exception End_of_file -> ()
-  | str -> if "new database" = (String.lowercase_ascii str) then login (new_database)
+  | str -> if "new database" = (String.lowercase_ascii str) then login (new_database "n")
   else login (from_json (str));
 
 
 (* Execute the (from_json (Yojson.Basic.from_file (data_dir_prefix ^ str ^ ".json"))) engine. *)
-let () = main ()
 
+in main ()
