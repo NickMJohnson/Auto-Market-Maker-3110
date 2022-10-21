@@ -7,26 +7,14 @@ type user = {
 }
 [@@deriving yojson]
 
-let user_of_json j =
-  {
-    name = j |> member "name" |> to_string;
-    usd = j |> member "usd" |> to_int;
-    brb = j |> member "brb" |> to_int;
-  }
-
 type t = {
   db_name : string;
   users : user list;
 }
 [@@deriving yojson]
 
-(*TODO: Replace with deriving plugin*)
-let from_json (str : string) : t =
-  let j = Yojson.Basic.from_string str in
-  {
-    db_name = j |> member "db_name" |> to_string;
-    users = j |> member "users" |> to_list |> List.map user_of_json;
-  }
+let from_json (json : string) : t =
+  json |> Yojson.Safe.from_string |> of_yojson |> Result.get_ok
 
 let new_database (name : string) : t = { users = []; db_name = name }
 (*TODO: Make this better. Like it could use from_json on an empty db file we
