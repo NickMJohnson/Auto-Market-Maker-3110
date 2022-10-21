@@ -98,6 +98,7 @@ and login f =
   else ANSITerminal.(print_string [blue; Bold] ("\nInvalid input. \n"));
 
 
+
 (** [main ()] prompts for the game to play, then starts it. *)
 and main () = 
   ANSITerminal.print_string [ ANSITerminal.red ]
@@ -107,8 +108,8 @@ and main () =
   print_string "> ";
   match read_line () with
   | exception End_of_file -> ()
-  | str -> if "new database" = (String.lowercase_ascii str) then (login (new_database "new")) 
-  else print_string("no")
+  | str -> if "new database" = (String.lowercase_ascii str) then (login (new_database "new")) else failwith "unimplemented" 
+  
 
 
 (* Execute the (from_json (Yojson.Basic.from_file (data_dir_prefix ^ str ^ ".json"))) engine. *)
