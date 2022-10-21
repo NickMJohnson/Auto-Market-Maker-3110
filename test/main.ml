@@ -20,6 +20,9 @@ let database_tests =
   [
     db_name_test {|db_name of empty is "empty"|} empty "empty";
     db_name_test {|db_name of bros is "3usersexample"|} bros "3usersexample";
+    db_name_test {|db_name of [new_database "new"] is "new|}
+      (Database.new_database "new" |> to_json)
+      "new";
   ]
 
 let tests = "Final project tests" >::: List.flatten [ database_tests ]

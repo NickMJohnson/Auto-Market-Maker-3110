@@ -64,5 +64,4 @@ let user_balance db name curr =
   find_user db.users
 
 (**[to_json db] is a json in string form that represents db*)
-let to_json (db : t) : string =
-  db |> to_yojson |> Yojson.Safe.to_basic |> to_string
+let to_json (db : t) : string = db |> to_yojson |> Yojson.Safe.to_string
