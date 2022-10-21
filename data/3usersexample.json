@@ -1,20 +1,20 @@
 {
+  "db_name": "3usersexample",
   "users": [
     {
       "name": "Tony",
-      "usd balance": 1400,
-      "brb balance": 20000
+      "usd": 1400,
+      "brb": 20000
     },
     {
       "name": "Nick",
-      "usd balance": 0,
-      "brb balance": 1
+      "usd": 0,
+      "brb": 1
     },
     {
       "name": "Anthony",
-      "usd balance": 1500000,
-      "brb balance": 2000000
+      "usd": 1500000,
+      "brb": 2000000
     }
-  ],
-  "order list": []
+  ]
 }
