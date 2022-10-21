@@ -1,5 +1,5 @@
-open Database 
 
+open Database
 let rec home (db : Database.t) (u : string)= 
   print_string
   "\n\n 
@@ -97,8 +97,9 @@ and login f =
   else if "new user" = (String.lowercase_ascii log) then new_user1 f
   else ANSITerminal.(print_string [blue; Bold] ("\nInvalid input. \n"));
 
+
 (** [main ()] prompts for the game to play, then starts it. *)
-let main ()=
+and main () = 
   ANSITerminal.print_string [ ANSITerminal.red ]
     "\n\nWelcome to the trading platform.\n";
   print_endline "Please enter [load database [database name]] to load a database \n
@@ -106,10 +107,10 @@ let main ()=
   print_string "> ";
   match read_line () with
   | exception End_of_file -> ()
-  | str -> if "new database" = (String.lowercase_ascii str) then login (new_database "n")
-  else login (from_json (str));
+  | str -> if "new database" = (String.lowercase_ascii str) then (login (new_database "new")) 
+  else print_string("no")
 
 
 (* Execute the (from_json (Yojson.Basic.from_file (data_dir_prefix ^ str ^ ".json"))) engine. *)
 
-in main ()
+let () = main ()
