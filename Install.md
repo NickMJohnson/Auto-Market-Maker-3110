@@ -1,4 +1,4 @@
-# Opam Install Instructions
+# Install Instructions
 1. Install the following packages in terminal
   ```
     - opam install ounit
