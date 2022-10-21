@@ -36,7 +36,7 @@ let coms z sl =
   let len = List.length sl in
   match String.lowercase_ascii z with
   | "deposit" -> Deposit sl
-  | "witdraw" -> Withdraw sl
+  | "withdraw" -> Withdraw sl
   | _ when len > 1 -> raise Malformed
   | "" -> raise Empty
   | "new_database" -> NewDatabase sl
@@ -44,6 +44,11 @@ let coms z sl =
   | "login" -> Login sl
   | "new_user" -> New_User sl
   | _ -> raise Malformed
+
+let redo = "please try again thank you!"
+
+
+ 
 
 let string_split s = List.filter (fun x -> x <> "") (String.split_on_char ' ' s)
 
@@ -75,7 +80,7 @@ let rec home (db : Database.t) (u : string) =
   print_string
     "\n\n \n    Pleae select a menu \n\n    - Admin\n\n    - Account\n";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); home db u
   | inp ->
       if "admin" = String.lowercase_ascii inp then admin db u
       else if "account" = String.lowercase_ascii inp then account db u
@@ -94,20 +99,23 @@ and admin db u =
     \    - Home\n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); admin db u
   | inp ->
       if "view users" = String.lowercase_ascii inp then view_users db u
       else if "home" = String.lowercase_ascii inp then home db u
       else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n")
 
-and quit db = home db (db_name db)
+and quit db u= 
+print_endline("Goodbye ");
+print_string u;
+update_json db
 
 and withdraw__ db u curr =
   print_endline "How much would you like to withdraw:\n";
   print_endline "Type an amount \n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); print_string u; withdraw__ db u curr
   | inp -> account (withdraw db u curr (int_of_string inp)) u
 
 and withdraw_ db u =
@@ -115,9 +123,8 @@ and withdraw_ db u =
   print_endline "Type brb to withdraw brb or usd to withdraw usd \n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
-  | inp ->
-      if "brb" = String.lowercase_ascii inp then
+  | exception End_of_file -> print_endline(redo); print_string u; withdraw_ db u
+  | inp -> if "brb" = String.lowercase_ascii inp then
         withdraw__ db u (String.lowercase_ascii inp)
       else if "usd" = String.lowercase_ascii inp then
         withdraw__ db u (String.lowercase_ascii inp)
@@ -128,7 +135,7 @@ and deposit__ db u curr =
   print_endline "Type an amount \n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); print_string u; deposit__ db u curr
   | inp -> account (deposit db u curr (int_of_string inp)) u
 
 and deposit_ db u =
@@ -136,13 +143,13 @@ and deposit_ db u =
   print_endline "Type brb to deposit brb or usd to deposit usd \n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); print_string u; deposit_ db u
   | inp ->
       if "brb" = String.lowercase_ascii inp then
         deposit__ db u (String.lowercase_ascii inp)
       else if "usd" = String.lowercase_ascii inp then
         deposit__ db u (String.lowercase_ascii inp)
-      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n")
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"); deposit_ db u
 
 and account (db : Database.t) (u : string) =
   print_endline "Current User is:\n";
@@ -162,7 +169,7 @@ and account (db : Database.t) (u : string) =
     \    - Quit\n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); print_string u; account db u
   | t -> begin
       match parse t with
       | exception Malformed -> account db u
@@ -179,15 +186,17 @@ and login f =
   print_endline "Type login [username] to login or new_user [username] \n";
   print_string "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception End_of_file -> print_endline(redo); login f
   | t -> begin
       match parse t with
-      | exception Malformed -> main ()
-      | exception Empty -> main ()
+      | exception Malformed -> print_endline(redo); login f
+      | exception Empty -> print_endline(redo); login f 
       | Login x -> account f (List.hd x)
       | New_User x -> account (new_user f (List.hd x)) (List.hd x)
-      | _ -> main ()
+      | _ -> print_endline(redo); login f
     end
+
+and create_da_file db  = new_db_file (db_name db) ""; login db
 
 (** [main ()] prompts for the game to play, then starts it. *)
 and main () =
@@ -201,13 +210,13 @@ and main () =
   | exception End_of_file -> ()
   | t -> begin
       match parse t with
-      | exception Malformed -> main ()
-      | exception Empty -> main ()
-      | NewDatabase x -> login (new_database (List.hd x))
+      | exception Malformed -> print_endline(redo); main ()
+      | exception Empty -> print_endline(redo); main ()
+      | NewDatabase x -> create_da_file (new_database (List.hd x))
       | Database x ->
           Yojson.Basic.from_file (data_dir_prefix ^ List.hd x ^ ".json")
           |> Yojson.Basic.to_string |> from_json |> login
-      | _ -> main ()
+      | _ -> print_endline(redo); main ()
     end
 
 (* Execute the (from_json (Yojson.Basic.from_file (data_dir_prefix ^ str ^
