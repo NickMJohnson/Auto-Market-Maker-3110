@@ -81,9 +81,10 @@ let rec home (db : Database.t) (u : string) =
       print_endline redo;
       home db u
   | inp ->
-      if "admin" = String.lowercase_ascii inp then admin db u
+      (if "admin" = String.lowercase_ascii inp then admin db u
       else if "account" = String.lowercase_ascii inp then account db u
-      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n")
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+      home db u
 
 and view_users db u =
   print_string (print_users (users db));
@@ -102,9 +103,10 @@ and admin db u =
       print_endline redo;
       admin db u
   | inp ->
-      if "view users" = String.lowercase_ascii inp then view_users db u
+      (if "view users" = String.lowercase_ascii inp then view_users db u
       else if "home" = String.lowercase_ascii inp then home db u
-      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n")
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+      admin db u
 
 and quit db u =
   print_endline "Goodbye ";
@@ -133,11 +135,12 @@ and withdraw_ db u =
       print_string u;
       withdraw_ db u
   | inp ->
-      if "brb" = String.lowercase_ascii inp then
-        withdraw__ db u (String.lowercase_ascii inp)
+      (if "brb" = String.lowercase_ascii inp then
+       withdraw__ db u (String.lowercase_ascii inp)
       else if "usd" = String.lowercase_ascii inp then
         withdraw__ db u (String.lowercase_ascii inp)
-      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n")
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+      withdraw_ db u
 
 and deposit__ db u curr =
   print_endline "How much would you like to deposit:\n";
