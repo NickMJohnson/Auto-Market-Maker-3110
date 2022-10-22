@@ -109,7 +109,8 @@ and admin db u =
 and quit db u =
   print_endline "Goodbye ";
   print_string u;
-  update_json db
+  update_json db;
+  exit 0
 
 and withdraw__ db u curr =
   print_endline "How much would you like to withdraw:\n";
@@ -169,7 +170,7 @@ and deposit_ db u =
 and account (db : Database.t) (u : string) =
   print_endline "Current User is:\n";
   print_endline u;
-  print_endline "Your BRB balance is:\n\n";
+  print_endline "Your USD balance is:\n\n";
   print_int (user_balance db u "usd");
   print_endline " \n";
   print_endline "Your BRB balance is:\n\n";
