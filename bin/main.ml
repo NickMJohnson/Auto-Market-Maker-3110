@@ -54,7 +54,9 @@ let parser s =
   | [ h ] -> com h
   | h :: t -> coms h t
 
-(* Create New File under data folder https://ocaml.org/docs/file-manipulation *)
+(* Create New Json File under data folder. Saved as data/jsonfile.json. The
+   open_out and close_out function was found from Ocaml library documentation.
+   Source: https://ocaml.org/docs/file-manipulation *)
 let new_db_file filename json_string =
   let create_file = open_out ("data/" ^ filename ^ ".json") in
   Printf.fprintf create_file "%s\n" json_string;
