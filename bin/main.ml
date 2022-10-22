@@ -226,7 +226,12 @@ and login f =
       | exception Empty ->
           print_endline redo;
           login f
-      | Login x -> account f (List.hd x)
+      | Login x ->
+          if List.mem (List.hd x) (users f) then account f (List.hd x)
+          else print_endline "-------------------------------------------";
+          ANSITerminal.print_string [ ANSITerminal.red ]
+            "Entered username does not exist! Try again!\n";
+          login f
       | New_User x -> account (new_user f (List.hd x)) (List.hd x)
       | _ ->
           print_endline redo;
