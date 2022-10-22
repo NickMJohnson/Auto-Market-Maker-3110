@@ -201,8 +201,15 @@ and account (db : Database.t) (u : string) =
     end
 
 and login f =
-  print_endline "Would you like to login or create a new user\n";
-  print_endline "Type login [username] to login or new_user [username] \n";
+  print_endline "\nWould you like to login or create a new user?\n";
+  ANSITerminal.print_string [ ANSITerminal.black ] "Please enter\n";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " - login username";
+  ANSITerminal.print_string [ ANSITerminal.black ] " to login\n";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " - new_user username";
+  ANSITerminal.print_string [ ANSITerminal.black ] " to create a new user\n";
+
+  (* print_endline "Type login [username] to login or new_user [username]
+     \n"; *)
   print_string "> ";
   match read_line () with
   | exception End_of_file ->
@@ -231,9 +238,17 @@ and create_da_file db =
 and main () =
   ANSITerminal.print_string [ ANSITerminal.red ]
     "\n\nWelcome to the trading platform.\n";
-  print_endline
-    "Please enter [database [database name]] to load a database \n\n\
-    \  or [new_database database] to create a new one";
+  ANSITerminal.print_string [ ANSITerminal.black ] "\nPlease enter \n -";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " database name ";
+  ANSITerminal.print_string [ ANSITerminal.black ] "to load database";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " name\n - ";
+  ANSITerminal.print_string [ ANSITerminal.blue ] "new_database name";
+  ANSITerminal.print_string [ ANSITerminal.black ]
+    " to create new database with new";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " name\n";
+
+  (* print_endline "Please enter [database [database name]] to load a database
+     \n\n\ \ or [new_database database] to create a new one"; *)
   print_string "> \n";
   match read_line () with
   | exception End_of_file -> ()
