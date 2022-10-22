@@ -16,3 +16,11 @@ test:
 
 play:
 	OCAMLRUNPARAM=b dune exec bin/main.exe
+
+zip:
+	rm -f Final_project.zip
+	zip -r Final_project . -x@exclude.lst
+
+clean:
+	dune clean
+	rm -f Final_project
