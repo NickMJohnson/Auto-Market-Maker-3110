@@ -1,4 +1,27 @@
-type t
+(*TODO: Order book {buy order list; sell order list} {name amt rate time} *)
+
+type user = {
+  name : string;
+  usd : int;
+  brb : int;
+}
+
+and t = {
+  db_name : string;
+  users : user list;
+  orders : order_book;
+}
+
+and order = {
+  user : string;
+  amount : int;
+  rate : int;
+}
+
+and order_book = {
+  buy_orders : order list;
+  sell_orders : order list;
+}
 (**the abstract type of an object representing a bid/ask database with users and
    orders. Users have usernames and a balance in cents of BRB and USD*)
 
@@ -28,6 +51,24 @@ val withdraw : t -> string -> string -> int -> t
 
 val user_balance : t -> string -> string -> int
 (** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
+
+val buy_order : t -> string -> int -> int -> t
+(**[buy_order db user
+   amt rate] is (db, remains) looking to buy amt BRBs with
+   exchange rate [rate]. User's USD balance is lowered by amt * rate, and the
+   order is added to their account. Int Requires: amt is an integer > 0 , rate
+   is an integer > 0 and <= 100, name is a valid user
+
+   val sell_order : t -> string -> int -> int -> t * int
+   (**[sell_order db user
+   amt rate] is db with user putting amt BRB into the
+   order pool, looking for USDs with exchange rate [rate]. User's B RB balance
+   is lowered by amt, and the order is added to their account. Requires: amt is
+   an integer > 0 , rate is an integer > 0 and <= 100 *) *)
+
+(* val account_status : t -> string -> user *)
+(**[acccount_status db user] returns the user record with name user in db.
+   Requires: name is a valid user*)
 
 val to_json : t -> string
 (**[to_json db] is a json in string form that represents db.t*)

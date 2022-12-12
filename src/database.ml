@@ -7,16 +7,33 @@ type user = {
 }
 [@@deriving yojson]
 
-type t = {
+and t = {
   db_name : string;
   users : user list;
+  orders : order_book;
+}
+[@@deriving yojson]
+
+and order = {
+  user : string;
+  amount : int;
+  rate : int;
+}
+[@@deriving yojson]
+
+and order_book = {
+  buy_orders : order list;
+  sell_orders : order list;
 }
 [@@deriving yojson]
 
 let from_json (json : string) : t =
   json |> Yojson.Safe.from_string |> of_yojson |> Result.get_ok
 
-let new_database (name : string) : t = { users = []; db_name = name }
+let empty_book = { buy_orders = []; sell_orders = [] }
+
+let new_database (name : string) : t =
+  { users = []; db_name = name; orders = empty_book }
 (*TODO: Make this better. Like it could use from_json on an empty db file we
   keep updated*)
 
@@ -62,6 +79,49 @@ let user_balance db name curr =
         else find_user s
   in
   find_user db.users
+
+let get_user db name =
+  match db.users with
+  | [] -> failwith "invalid name"
+  | h :: t -> h
+
+let rec buy_order db name amt rate =
+  let charge_orderer = withdraw db name "usd" (amt * rate) in
+  buy_order_filler { user = name; amount = amt; rate } charge_orderer
+
+and update_user_balance name usd_amt ul =
+  match ul with
+  | [] -> failwith "user has an order but does not exist"
+  | h :: t ->
+      if h.name = name then { h with usd = h.usd + usd_amt } :: t
+      else h :: update_user_balance name usd_amt t
+
+and buy_order_filler order db =
+  if order.amount <= 0 then db
+  else
+    match db.orders.sell_orders with
+    | [] ->
+        {
+          db with
+          orders = { db.orders with buy_orders = order :: db.orders.buy_orders };
+        }
+    | h :: t when order.rate < h.rate ->
+        {
+          db with
+          orders = { db.orders with buy_orders = order :: db.orders.buy_orders };
+        }
+    | h :: t ->
+        if h.amount <= order.amount then
+          let db_no_h =
+            {
+              db with
+              orders = { db.orders with sell_orders = t };
+              users = update_user_balance h.user (h.amount * h.rate) db.users;
+            }
+          in
+          let updated_order = { order with amount = order.amount - h.amount } in
+          buy_order_filler updated_order db_no_h
+        else failwith "yes"
 
 (**[to_json db] is a json in string form that represents db*)
 let to_json (db : t) : string = db |> to_yojson |> Yojson.Safe.to_string
