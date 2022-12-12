@@ -41,25 +41,25 @@ val new_user : t -> string -> t
 val users : t -> string list
 (**[users db] is a list of the usernames of all the users in db*)
 
-val deposit : t -> string -> string -> int -> t
-(**[deposit db name curr amt] is db with user name having amt more of currency
+val deposit : string -> string -> int -> t -> t
+(**[deposit  name curr amt db] is db with user name having amt more of currency
    curr Requires: name is valid name of a user in db, curr is either USD or BRB*)
 
-val withdraw : t -> string -> string -> int -> t
-(**[withdraw db name curr amt] is db with user name having amt less of currency
+val withdraw : string -> string -> int -> t -> t
+(**[withdraw name curr amt db] is db with user name having amt less of currency
    curr Requires: name is valid name of a user in db, curr is either usd or brb*)
 
 val user_balance : t -> string -> string -> int
 (** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
 
-val buy_order : t -> string -> int -> float -> t
-(**[buy_order db user
-   amt rate] is (db, remains) looking to buy amt BRBs with
-   exchange rate [rate]. User's USD balance is lowered by amt * rate, and the
-   order is added to their account. Int Requires: amt is an integer > 0 , rate
-   is an float > 0 and <= 1, name is a valid user*)
+val buy_order : string -> int -> float -> t -> t
+(**[buy_order user
+   amt rate db] is db with a buy order: user looking to buy
+   amt BRBs with exchange rate [rate]. User's USD balance is lowered by amt *
+   rate, and the order is added to their account. Int Requires: amt is an
+   integer > 0 , rate is an float > 0 and <= 1, name is a valid user*)
 
-val sell_order : t -> string -> int -> float -> t
+val sell_order : string -> int -> float -> t -> t
 (**[sell_order db user
    amt rate] is db looking to sell amt BRBs with exchange
    rate [rate]. User's BRB balance is lowered by amt, and the order is added to
