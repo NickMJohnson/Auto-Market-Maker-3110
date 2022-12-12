@@ -101,10 +101,9 @@ let sort_orders db =
   }
 
 let rec buy_order name amt (rate : float) db =
-  let charge_orderer = withdraw name "usd" (amt *> rate) db in
-  charge_orderer
-  |> buy_order_filler { user = name; amount = amt; rate }
-  |> sort_orders
+  (* let charge_orderer = withdraw name "usd" (amt *> rate) db in
+     charge_orderer *)
+  db |> buy_order_filler { user = name; amount = amt; rate } |> sort_orders
 
 and buy_order_filler order db =
   if order.amount <= 0 then db
@@ -122,15 +121,19 @@ and buy_order_filler order db =
         }
     | h :: t ->
         if h.amount <= order.amount then
-          let db_no_h =
+          let remove_head =
             { db with orders = { db.orders with sell_orders = t } }
             |> deposit h.user "usd" (h.amount *> h.rate)
+            |> withdraw order.user "usd" (h.amount *> h.rate)
+            |> deposit order.user "brb" h.amount
+            |> withdraw h.user "brb" h.amount
           in
+
           let updated_order = { order with amount = order.amount - h.amount } in
-          buy_order_filler updated_order db_no_h
+          buy_order_filler updated_order remove_head
         else
           (*If the smallest sell order is enough to fulfill our order*)
-          let db_smaller_h =
+          let smaller_head =
             {
               db with
               orders =
@@ -140,11 +143,15 @@ and buy_order_filler order db =
                 };
             }
             |> deposit h.user "usd" (order.amount *> h.rate)
+            |> withdraw order.user "usd" (order.amount *> h.rate)
+            |> deposit order.user "brb" order.amount
+            |> withdraw h.user "brb" order.amount
           in
-          let updated_order = { order with amount = 0 } in
-          buy_order_filler updated_order db_smaller_h
 
-let rec sell_order db name amt (rate : float) =
+          let updated_order = { order with amount = 0 } in
+          buy_order_filler updated_order smaller_head
+
+let rec sell_order name amt (rate : float) db =
   let charge_orderer = withdraw name "brb" amt db in
   {
     charge_orderer with
