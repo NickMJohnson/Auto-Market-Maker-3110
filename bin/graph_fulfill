@@ -1,0 +1,214 @@
+open Graphics;;
+
+let width = 800
+let height = 600
+
+type user = {
+  name : string;
+  brb_balance : float;
+  usd_balance : float;
+  orders : order list;
+}
+and order = {
+  user : string;
+  buy_sell : [`Buy | `Sell];
+  price_per_bnb : float;
+  amount : float;
+}
+type order_book = {
+  buy_orders : order list;
+  sell_orders : order list;
+}
+
+
+
+let usd_order_book : order_book ref = ref {buy_orders=[];sell_orders=[]}
+let bnb_order_book : order_book ref = ref {buy_orders=[];sell_orders=[]}
+
+let place_order (user : user) (buy_sell : [`Buy | `Sell]) (price_per_bnb : float) (num_bnb : float) =
+  if buy_sell = `Buy then
+    (let order = {user=user;buy_sell=buy_sell;price_per_bnb=price_per_bnb;amount=num_bnb} in
+    {user with 
+      brb_balance = (user.brb_balance) - num_bnb *. price_per_bnb;
+      orders = order :: user.orders;
+    })
+  else
+    (let order = {user=user;buy_sell=buy_sell;price_per_bnb=price_per_bnb;amount=num_bnb} in
+    {user with  
+      usd_balance = (user.usd_balance) - num_bnb *. price_per_bnb;
+      orders = order :: user.orders;
+    })
+
+let update_and_fulfill (order_book_ref : order_book ref) (order : order) =
+  if order.buy_sell = `Buy then
+    (let sell_orders = !order_book_ref.sell_orders in
+    let rec recurse = function
+      | [] -> (user, order) :: order_book_ref.sell_orders
+      | head :: tail -> 
+        if order.price_per_bnb < head.price_per_bnb then
+          head :: recurse tail
+        else
+          if order.price_per_bnb > head.price_per_bnb then
+            (let order_amount = ref order.amount in
+            let head_amount = ref head.amount in
+            while ((!order_amount) > 0.0) && ((!head_amount) > 0.0) do
+              order_amount := (!order_amount -. 0.001);
+              head_amount := (!head_amount -. 0.001);
+            done;
+            let head_filled = {head with amount = !head_amount} in
+            head_filled :: recurse tail)
+          else
+            let rec int_recurse = function
+              | [] -> List.rev ((order, head) :: order_book_ref.sell_orders)
+              | int_head :: int_tail ->
+                if order.user.name <> int_head.user.name then
+                  (int_head :: recurse int_tail)
+                else
+                  let head_filled = {head with amount = 0.0} in
+                  let order_filled = {order with amount = 0.0} in
+                  (order_filled :: head_filled :: recurse tail)
+            in
+            int_recurse tail)
+      in
+      order_book_ref := {buy_orders= !order_book_ref.buy_orders;sell_orders= (recurse sell_orders)}
+  else
+    (let buy_orders = !order_book_ref.buy_orders in
+    let rec recurse = function
+      | [] -> (user, order) :: order_book_ref.buy_orders
+      | head :: tail -> 
+        if order.price_per_bnb > head.price_per_bnb then
+          head :: recurse tail
+        else
+          if order.price_per_bnb < head.price_per_bnb then
+            (let order_amount = ref order.amount in
+            let head_amount = ref head.amount in
+            while ((!order_amount) > 0.0) && ((!head_amount) > 0.0) do
+              order_amount := (!order_amount -. 0.001);
+              head_amount := (!head_amount -. 0.001);
+            done;
+            let head_filled = {head with amount = !head_amount} in
+            head_filled :: recurse tail)
+          else
+            let rec int_recurse = function
+              | [] -> List.rev ((order, head) :: order_book_ref.buy_orders)
+              | int_head :: int_tail ->
+                if order.user.name <> int_head.user.name then
+                  int_head :: recurse int_tail
+                else
+                  let head_filled = {head with amount = 0.0} in
+                  let order_filled = {order with amount = 0.0} in
+                  (order :: head_filled :: recurse tail)
+            in
+            int_recurse tail)
+    in
+    order_book_ref := {buy_orders=recurse buy_orders;sell_orders=!order_book_ref.sell_orders}
+
+
+
+let draw_order_book (order_book : order_book) (width : int) (height : int) =
+  let (min_price, max_price) =
+    List.fold_left (fun (min_price, max_price) order ->
+      let price = order.price_per_bnb in
+      (min min_price price, max max_price price)
+    ) (max_float, min_float) (order_book.buy_orders @ order_book.sell_orders)
+  in
+  let (min_amount, max_amount) =
+    List.fold_left (fun (min_amount, max_amount) order ->
+      let amount = order.amount in
+      (min min_amount amount, max max_amount amount)
+    ) (max_float, min_float) (order_book.buy_orders @ order_book.sell_orders)
+  in
+  let x_scale = float_of_int width /. (max_price -. min_price) in
+  let y_scale = float_of_int height /. (max_amount -. min_amount) in
+  let draw_order (order : order) =
+    let x = int_of_float ((order.price_per_bnb -. min_price) *. x_scale) in
+    let y = height - int_of_float ((order.amount -. min_amount) *. y_scale) in
+    let color =
+      match order.buy_sell with
+      | `Buy -> green
+      | `Sell -> red
+    in
+    let shape =
+      if order.amount >= 10.0 then
+        rectangle
+      else
+        circle
+    in
+    (fill_shape x y shape 5 color)
+  in
+  List.iter draw_order order_book.buy_orders;
+  List.iter draw_order order_book.sell_orders
+
+  
+
+    
+let draw_user_interface usd_order_book bnb_order_book =
+  (* Clear the screen *)
+  clear_graph ();
+
+  (* Draw the order books *)
+  draw_order_book usd_order_book width height;
+  draw_order_book bnb_order_book width height;
+
+  (* Draw the labels and other UI elements *)
+  set_color black;
+  moveto 20 20;
+  draw_string "USD Order Book";
+  moveto 20 40;
+  draw_string "BNB Order Book";
+  (* Display the updated user interface on the screen *)
+  synchronize ();
+
+  (* Wait for user input *)
+  let event = wait_next_event [Button_down] in if event.button then
+    (* User clicked the mouse, so let them place an order *)
+    let buy_sell =
+      (* Prompt the user to choose whether they want to buy or sell *)
+      (* Use the read_line function to read the user's input *)
+      print_string "Do you want to buy or sell: ";
+      let buy_sell = read_line () in
+      if buy_sell = "buy" then `Buy
+      else if buy_sell = "sell" then `Sell
+      else failwith "Invalid input"
+    in
+    let price_per_bnb =
+      (* Prompt the user to enter the price per BNB for the order *)
+      print_string "Enter the price per BNB: ";
+      let price_per_bnb = read_line () in
+      float_of_string price_per_bnb
+    in
+    let num_bnb =
+      (* Prompt the user to enter the number of BNB for the order *)
+      print_string "Enter the number of BNB: ";
+      let num_bnb = read_line () in
+      float_of_string num_bnb
+    in
+    (* Use the place_order function to place the order *)
+    let user = place_order user buy_sell price_per_bnb num_bnb in
+    (* Draw the updated order books *)
+    draw_user_interface usd_order_book bnb_order_book
+
+and order_book = {
+      buy_orders = [
+        { user = "Alice"; buy_sell = `Buy; price_per_bnb = 0.5; amount = 5.0 };
+        { user = "Bob";buy_sell = `Buy; price_per_bnb = 0.6; amount = 8.0 };
+        { user = "Charlie"; buy_sell = `Buy; price_per_bnb = 0.7; amount = 10.0 };
+        { user = "Dave"; buy_sell = `Buy; price_per_bnb = 0.8; amount = 5.0 };
+        { user = "Eve"; buy_sell = `Buy; price_per_bnb = 0.9; amount = 10.0 }
+      ];
+      sell_orders = [
+        { user = "Frank"; buy_sell = `Sell; price_per_bnb = 0.4; amount = 12.0 };
+        { user = "George"; buy_sell = `Sell; price_per_bnb = 0.3; amount = 15.0 };
+        { user = "Hannah"; buy_sell = `Sell; price_per_bnb = 0.2; amount = 9.0 };
+        { user = "Ivan"; buy_sell = `Sell; price_per_bnb = 0.1; amount = 10.0 };
+        { user = "Jessica"; buy_sell = `Sell; price_per_bnb = 0.05; amount = 5.0 }
+      ];
+    }
+
+
+
+  let () =
+    open_graph "";
+    resize_window width height;
+    draw_order_book {buy_orders = []; sell_orders = []} width height;
+    ignore (read_key ())
