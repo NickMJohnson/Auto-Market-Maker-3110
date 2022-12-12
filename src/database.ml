@@ -87,9 +87,29 @@ let get_user db name =
 
 let ( *> ) i f = i |> float_of_int |> ( *. ) f |> int_of_float
 
+let sort_orders db =
+  {
+    db with
+    orders =
+      {
+        buy_orders =
+          List.sort
+            (fun o1 o2 -> Float.compare o2.rate o1.rate)
+            db.orders.buy_orders;
+        (*buy orders sorted largest rate first*)
+        sell_orders =
+          List.sort
+            (fun o1 o2 -> Float.compare o1.rate o2.rate)
+            db.orders.sell_orders
+          (*buy orders sorted smallest rate first*);
+      };
+  }
+
 let rec buy_order db name amt (rate : float) =
   let charge_orderer = withdraw db name "usd" (amt *> rate) in
-  buy_order_filler { user = name; amount = amt; rate } charge_orderer
+  charge_orderer
+  |> buy_order_filler { user = name; amount = amt; rate }
+  |> sort_orders
 
 and update_user_balance name usd_amt ul =
   match ul with
@@ -123,7 +143,24 @@ and buy_order_filler order db =
           in
           let updated_order = { order with amount = order.amount - h.amount } in
           buy_order_filler updated_order db_no_h
-        else failwith "yes"
+        else
+          (*If the smallest sell order is enough to fulfill our order*)
+          let db_smaller_h =
+            {
+              db with
+              orders =
+                {
+                  db.orders with
+                  sell_orders = { h with amount = h.amount - order.amount } :: t;
+                };
+              users =
+                update_user_balance h.user (order.amount *> h.rate) db.users;
+            }
+          in
+          let updated_order =
+            { order with amount = order.amount - order.amount }
+          in
+          buy_order_filler updated_order db_smaller_h
 
 (**[to_json db] is a json in string form that represents db*)
 let to_json (db : t) : string = db |> to_yojson |> Yojson.Safe.to_string
