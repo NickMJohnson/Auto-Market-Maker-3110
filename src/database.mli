@@ -15,7 +15,7 @@ and t = {
 and order = {
   user : string;
   amount : int;
-  rate : int;
+  rate : float;
 }
 
 and order_book = {
@@ -52,12 +52,12 @@ val withdraw : t -> string -> string -> int -> t
 val user_balance : t -> string -> string -> int
 (** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
 
-val buy_order : t -> string -> int -> int -> t
+val buy_order : t -> string -> int -> float -> t
 (**[buy_order db user
    amt rate] is (db, remains) looking to buy amt BRBs with
    exchange rate [rate]. User's USD balance is lowered by amt * rate, and the
    order is added to their account. Int Requires: amt is an integer > 0 , rate
-   is an integer > 0 and <= 100, name is a valid user
+   is an float > 0 and <= 1, name is a valid user
 
    val sell_order : t -> string -> int -> int -> t * int
    (**[sell_order db user
