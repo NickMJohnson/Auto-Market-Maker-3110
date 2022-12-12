@@ -47,10 +47,7 @@ let new_user db nm =
 (*[users db] is a list of the usernames of all the users in db*)
 let users db = List.map (fun x -> x.name) db.users
 
-(*[deposit db name curr amt] is db with user name having amt more of currency
-  curr Requires: name is valid name of a user in db, curr is either USD or BRB*)
-(*TODO: Integrate and fix. Can use library functions to make much better prob.*)
-let deposit db name curr amt =
+let deposit name curr amt db =
   let cap = String.uppercase_ascii curr in
   let rec find_user users prev =
     match users with
@@ -63,9 +60,7 @@ let deposit db name curr amt =
   in
   { db with users = find_user db.users [] }
 
-(*[withdraw db name curr amt] is db with user name having amt less of currency
-  curr Requires: name is valid name of a user in db, curr is either usd or brb*)
-let withdraw db name curr amt = deposit db name curr (-amt)
+let withdraw name curr amt db = deposit name curr (-amt) db
 
 (* Example: [user_balance db name curr] is tony's balance of curr (in brb
    cents) *)
@@ -105,18 +100,11 @@ let sort_orders db =
       };
   }
 
-let rec buy_order db name amt (rate : float) =
-  let charge_orderer = withdraw db name "usd" (amt *> rate) in
+let rec buy_order name amt (rate : float) db =
+  let charge_orderer = withdraw name "usd" (amt *> rate) db in
   charge_orderer
   |> buy_order_filler { user = name; amount = amt; rate }
   |> sort_orders
-
-and update_user_balance name usd_amt ul =
-  match ul with
-  | [] -> failwith "user has an order but does not exist"
-  | h :: t ->
-      if h.name = name then { h with usd = h.usd + usd_amt } :: t
-      else h :: update_user_balance name usd_amt t
 
 and buy_order_filler order db =
   if order.amount <= 0 then db
@@ -135,11 +123,8 @@ and buy_order_filler order db =
     | h :: t ->
         if h.amount <= order.amount then
           let db_no_h =
-            {
-              db with
-              orders = { db.orders with sell_orders = t };
-              users = update_user_balance h.user (h.amount *> h.rate) db.users;
-            }
+            { db with orders = { db.orders with sell_orders = t } }
+            |> deposit h.user "usd" (h.amount *> h.rate)
           in
           let updated_order = { order with amount = order.amount - h.amount } in
           buy_order_filler updated_order db_no_h
@@ -153,17 +138,14 @@ and buy_order_filler order db =
                   db.orders with
                   sell_orders = { h with amount = h.amount - order.amount } :: t;
                 };
-              users =
-                update_user_balance h.user (order.amount *> h.rate) db.users;
             }
+            |> deposit h.user "usd" (order.amount *> h.rate)
           in
-          let updated_order =
-            { order with amount = order.amount - order.amount }
-          in
+          let updated_order = { order with amount = 0 } in
           buy_order_filler updated_order db_smaller_h
 
 let rec sell_order db name amt (rate : float) =
-  let charge_orderer = withdraw db name "brb" amt in
+  let charge_orderer = withdraw name "brb" amt db in
   {
     charge_orderer with
     orders =
@@ -174,29 +156,6 @@ let rec sell_order db name amt (rate : float) =
       };
   }
   |> sort_orders
-
-(*let rec sell_order db name amt (rate : float) = let charge_orderer = withdraw
-  db name "brb" (amt) in charge_orderer |> buy_order_filler { user = name;
-  amount = amt; rate } |> sort_orders
-
-  and update_user_balance name usd_amt ul = match ul with | [] -> failwith "user
-  has an order but does not exist" | h :: t -> if h.name = name then { h with
-  usd = h.usd + usd_amt } :: t else h :: update_user_balance name usd_amt t
-
-  and sell_order_filler order db = if order.amount <= 0 then db else match
-  db.orders.sell_orders with | [] -> { db with orders = { db.orders with
-  buy_orders = order :: db.orders.buy_orders }; } | h :: t when order.rate <
-  h.rate -> { db with orders = { db.orders with buy_orders = order ::
-  db.orders.buy_orders }; } | h :: t -> if h.amount <= order.amount then let
-  db_no_h = { db with orders = { db.orders with sell_orders = t }; users =
-  update_user_balance h.user (h.amount *> h.rate) db.users; } in let
-  updated_order = { order with amount = order.amount - h.amount } in
-  buy_order_filler updated_order db_no_h else (*If the smallest sell order is
-  enough to fulfill our order*) let db_smaller_h = { db with orders = {
-  db.orders with sell_orders = { h with amount = h.amount - order.amount } :: t;
-  }; users = update_user_balance h.user (order.amount *> h.rate) db.users; } in
-  let updated_order = { order with amount = order.amount - order.amount } in
-  buy_order_filler updated_order db_smaller_h*)
 
 (**[to_json db] is a json in string form that represents db*)
 let to_json (db : t) : string = db |> to_yojson |> Yojson.Safe.to_string
