@@ -1,4 +1,6 @@
+
 open Database
+open Order
 
 type object_phrase = string list
 
@@ -16,6 +18,8 @@ type command =
   | Withdraw of object_phrase
   | View_Bal
   | View_Users
+  | Order 
+  | Graph 
   | Quit
 
 exception Empty
@@ -30,6 +34,8 @@ let com z =
   | "admin" -> Admin
   | "view_balance" -> View_Bal
   | "view_users" -> View_Users
+  | "order" -> Order
+  | "graph" -> Graph
   | _ -> raise Malformed
 
 let coms z sl =
@@ -125,7 +131,7 @@ and withdraw__ db u curr =
       print_endline redo;
       print_string u;
       withdraw__ db u curr
-  | inp -> account (withdraw db u curr (int_of_string inp)) u
+  | inp -> account (withdraw u curr (int_of_string inp) db) u
 
 and withdraw_ db u =
   print_endline "What would you like to withdrawl?:\n";
@@ -153,7 +159,7 @@ and deposit__ db u curr =
       print_endline redo;
       print_string u;
       deposit__ db u curr
-  | inp -> account (deposit db u curr (int_of_string inp)) u
+  | inp -> account (deposit u curr (int_of_string inp) db) u
 
 and deposit_ db u =
   print_endline "What would you like to deposit?:\n";
@@ -172,20 +178,98 @@ and deposit_ db u =
       else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
       deposit_ db u
 
-and account (db : Database.t) (u : string) =
-  print_endline "Current User is:\n";
-  print_endline u;
-  print_endline "Your USD balance is:\n\n";
+and sell__order db u rate=
+  print_endline "Your BRB balance is:  ";
+  print_int (user_balance db u "brb");
+  print_endline " \n";
+  print_endline "How much of this balance would you like to sell for USD\n";
+  print_string "> ";
+  match read_line () with
+  | exception End_of_file ->
+      print_endline redo;
+      print_string u;
+      sell__order db u rate
+  | inp -> account (sell_order u (int_of_string inp) rate db) u
+  
+
+and buy__order db u rate=
+  print_string "Your USD balance is:  ";
   print_int (user_balance db u "usd");
   print_endline " \n";
-  print_endline "Your BRB balance is:\n\n";
-  print_int (user_balance db u "brb");
+  print_endline "How many BRB would you like to buy?\n";
+  print_string "> ";
+  match read_line () with
+  | exception End_of_file ->
+      print_endline redo;
+      print_string u;
+      buy__order db u rate
+  | inp -> account (buy_order u (int_of_string inp) rate db) u
+
+and order__ db u curr= 
+  print_endline " \n";
+  print_endline "What is you asking price in USD per BRB :\n";
+  print_endline "Type an amount Eg: 0.51\n";
+  print_string "> ";
+  match read_line () with
+  | exception End_of_file ->
+      print_endline redo;
+      print_string u;
+      order__ db u curr
+  | inp -> let rate = (float_of_string (String.lowercase_ascii inp)) in 
+      (if rate > 0. && rate < 1.0 then
+        if curr = "buy" then buy__order db u rate
+        else if curr = "sell" then sell__order db u rate
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+      order__ db u curr
+
+and order_ db u =
+  print_endline "Would you like to place a Buy or Sell?:\n";
+  print_endline "Type Buy to buy brb or sell to sell brb \n";
+  print_string "> ";
+  match read_line () with
+  | exception End_of_file ->
+      print_endline redo;
+      print_string u;
+      order_ db u
+  | inp ->
+      (if "buy" = String.lowercase_ascii inp then
+       order__ db u (String.lowercase_ascii inp)
+      else if "sell" = String.lowercase_ascii inp then
+        order__ db u (String.lowercase_ascii inp)
+      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+      order_ db u
+
+
+and graph_ db u =
+      print_database db u;
+      print_endline " \n";
+  print_string "Type exit to exit:  ";
+    match read_line () with
+      | exception End_of_file ->
+      print_endline redo;
+      print_string u;
+      order_ db u
+  | inp -> if "exit" = String.lowercase_ascii inp then account db u
+
+and account (db : Database.t) (u : string) =
+  print_endline " \n";
+  print_string "Current User: ";
+  ANSITerminal.print_string [ ANSITerminal.blue ] u;
+  print_endline " \n";
+  print_string "Your USD balance is: $";
+  ANSITerminal.print_string [ ANSITerminal.blue ] (string_of_int (user_balance db u "usd"));
+  print_endline " \n";
+  print_string "Your BRB balance is: $";
+  ANSITerminal.print_string [ ANSITerminal.blue ] (string_of_int (user_balance db u "brb"));
+  print_endline " \n";
+  ANSITerminal.print_string [ ANSITerminal.red ] "\n Pleae select a menu";
+  
   print_string
-    "\n\n\
-    \ \n\
-    \    Pleae select a menu \n\n\
+    "\ \n\
     \    - Deposit Currency\n\n\
     \    - Withdraw Currency\n\n\
+    \    - Order\n\n\
+    \    - Graph\n\n\
     \    - Home\n\n\
     \    - Quit\n";
   print_string "> ";
@@ -200,6 +284,8 @@ and account (db : Database.t) (u : string) =
       | exception Empty -> account db u
       | Deposit x -> deposit_ db u
       | Withdraw x -> withdraw_ db u
+      | Order -> order_ db u
+      | Graph -> graph_ db u
       | Home -> home db u
       | Quit -> quit db u
       | _ -> account db u
@@ -259,7 +345,7 @@ and main () =
 
   (* print_endline "Please enter [database [database name]] to load a database
      \n\n\ \ or [new_database database] to create a new one"; *)
-  print_string "> \n";
+  print_string "> ";
   match read_line () with
   | exception End_of_file -> ()
   | t -> begin
@@ -283,3 +369,81 @@ and main () =
    ".json"))) engine. *)
 
 let () = main ()
+
+
+(*
+(* Defines the type of a command, which represents an action that can be taken with the database.
+   The possible commands are:
+   - NewDatabase of object_phrase: creates a new database with the given object phrase
+   - Database of object_phrase: opens the database with the given object phrase
+   - Login of object_phrase: logs in to the database with the given object phrase
+   - New_User of object_phrase: creates a new user in the database with the given object phrase
+   - Home: navigates to the home menu
+   - Account: navigates to the account menu
+   - Admin: navigates to the admin menu
+   - Deposit of object_phrase: deposits the given amount into the account with the given object phrase
+   - Withdraw of object_phrase: withdraws the given amount from the account with the given object phrase
+   - View_Bal: views the balance of the current user's account
+   - View_Users: views the list of users in the database
+   - Quit: quits the program
+*)
+type command =
+  | NewDatabase of object_phrase
+  | Database of object_phrase
+  | Login of object_phrase
+  | New_User of object_phrase
+  | Home
+  | Account
+  | Admin
+  | Deposit of object_phrase
+  | Withdraw of object_phrase
+  | View_Bal
+  | View_Users
+  | Quit
+
+(* Defines an exception for when a command is empty. *)
+exception Empty
+(* Defines an exception for when a command is malformed. *)
+exception Malformed
+
+(* Helper function for parsing a single word command. *)
+let com z =
+  match String.lowercase_ascii z with
+  | "" -> raise Empty
+  | "quit" -> Quit
+  | "home" -> Home
+  | "account" -> Account
+  | "admin" -> Admin
+  | "view_balance" -> View_Bal
+  | "view_users" -> View_Users
+  | _ -> raise Malformed
+
+(* Helper function for parsing a multi-word command. *)
+let coms z sl =
+  let len = List.length sl in
+  match String.lowercase_ascii z with
+  | "deposit" -> Deposit sl
+  | "withdraw" -> Withdraw sl
+  | _ when len > 1 -> raise Malformed
+  | "" -> raise Empty
+  | "new_database" -> NewDatabase sl
+  | "database" -> Database sl
+  | "login" -> Login sl
+  | "new_user" -> New_User sl
+  | _ -> raise Malformed
+
+(* Defines a string to be displayed when an input is invalid. *)
+let redo = "please try again thank you!"
+
+(* Splits a string into a list of words, filtering out empty strings. *)
+let string_split s = List.filter (fun x -> x <> "") (String.split_on_char ' ' s)
+
+(* Parses a list of words into a command. *)
+let parser s =
+  match s with
+  | [] -> raise Empty
+  | [ h ] -> com h
+  | h :: t -> coms h t
+
+Creates a new json file in the `data` directory with the given filename and json string.
+   The file is saved as `data/json*)
