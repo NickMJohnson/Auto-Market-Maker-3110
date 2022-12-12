@@ -17,7 +17,7 @@ and t = {
 and order = {
   user : string;
   amount : int;
-  rate : int;
+  rate : float;
 }
 [@@deriving yojson]
 
@@ -85,8 +85,10 @@ let get_user db name =
   | [] -> failwith "invalid name"
   | h :: t -> h
 
-let rec buy_order db name amt rate =
-  let charge_orderer = withdraw db name "usd" (amt * rate) in
+let ( *> ) i f = i |> float_of_int |> ( *. ) f |> int_of_float
+
+let rec buy_order db name amt (rate : float) =
+  let charge_orderer = withdraw db name "usd" (amt *> rate) in
   buy_order_filler { user = name; amount = amt; rate } charge_orderer
 
 and update_user_balance name usd_amt ul =
@@ -116,7 +118,7 @@ and buy_order_filler order db =
             {
               db with
               orders = { db.orders with sell_orders = t };
-              users = update_user_balance h.user (h.amount * h.rate) db.users;
+              users = update_user_balance h.user (h.amount *> h.rate) db.users;
             }
           in
           let updated_order = { order with amount = order.amount - h.amount } in
