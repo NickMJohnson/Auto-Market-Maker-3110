@@ -57,14 +57,14 @@ val buy_order : t -> string -> int -> float -> t
    amt rate] is (db, remains) looking to buy amt BRBs with
    exchange rate [rate]. User's USD balance is lowered by amt * rate, and the
    order is added to their account. Int Requires: amt is an integer > 0 , rate
-   is an float > 0 and <= 1, name is a valid user
+   is an float > 0 and <= 1, name is a valid user*)
 
-   val sell_order : t -> string -> int -> int -> t * int
-   (**[sell_order db user
-   amt rate] is db with user putting amt BRB into the
-   order pool, looking for USDs with exchange rate [rate]. User's B RB balance
-   is lowered by amt, and the order is added to their account. Requires: amt is
-   an integer > 0 , rate is an integer > 0 and <= 100 *) *)
+val sell_order : t -> string -> int -> float -> t
+(**[sell_order db user
+   amt rate] is db looking to sell amt BRBs with exchange
+   rate [rate]. User's BRB balance is lowered by amt, and the order is added to
+   their account. Requires: amt is an integer > 0 , rate is an integer > 0 and
+   <= 100 *)
 
 (* val account_status : t -> string -> user *)
 (**[acccount_status db user] returns the user record with name user in db.

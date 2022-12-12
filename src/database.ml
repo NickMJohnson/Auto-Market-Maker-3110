@@ -162,5 +162,41 @@ and buy_order_filler order db =
           in
           buy_order_filler updated_order db_smaller_h
 
+let rec sell_order db name amt (rate : float) =
+  let charge_orderer = withdraw db name "brb" amt in
+  {
+    charge_orderer with
+    orders =
+      {
+        db.orders with
+        sell_orders =
+          { user = name; amount = amt; rate } :: db.orders.sell_orders;
+      };
+  }
+  |> sort_orders
+
+(*let rec sell_order db name amt (rate : float) = let charge_orderer = withdraw
+  db name "brb" (amt) in charge_orderer |> buy_order_filler { user = name;
+  amount = amt; rate } |> sort_orders
+
+  and update_user_balance name usd_amt ul = match ul with | [] -> failwith "user
+  has an order but does not exist" | h :: t -> if h.name = name then { h with
+  usd = h.usd + usd_amt } :: t else h :: update_user_balance name usd_amt t
+
+  and sell_order_filler order db = if order.amount <= 0 then db else match
+  db.orders.sell_orders with | [] -> { db with orders = { db.orders with
+  buy_orders = order :: db.orders.buy_orders }; } | h :: t when order.rate <
+  h.rate -> { db with orders = { db.orders with buy_orders = order ::
+  db.orders.buy_orders }; } | h :: t -> if h.amount <= order.amount then let
+  db_no_h = { db with orders = { db.orders with sell_orders = t }; users =
+  update_user_balance h.user (h.amount *> h.rate) db.users; } in let
+  updated_order = { order with amount = order.amount - h.amount } in
+  buy_order_filler updated_order db_no_h else (*If the smallest sell order is
+  enough to fulfill our order*) let db_smaller_h = { db with orders = {
+  db.orders with sell_orders = { h with amount = h.amount - order.amount } :: t;
+  }; users = update_user_balance h.user (order.amount *> h.rate) db.users; } in
+  let updated_order = { order with amount = order.amount - order.amount } in
+  buy_order_filler updated_order db_smaller_h*)
+
 (**[to_json db] is a json in string form that represents db*)
 let to_json (db : t) : string = db |> to_yojson |> Yojson.Safe.to_string
