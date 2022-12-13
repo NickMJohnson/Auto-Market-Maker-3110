@@ -29,14 +29,14 @@ let db_deposit_test (name : string) (json : string) (curr : string)
     (user : string) (amt : int) (expected_output : int) : test =
   name >:: fun _ ->
   assert_equal expected_output
-    (user_balance (deposit (from_json json) user curr amt) user curr)
+    (user_balance (deposit user curr amt (from_json json) ) user curr)
     ~printer:string_of_int
 
 let db_withdraw_test (name : string) (json : string) (curr : string)
     (user : string) (amt : int) (expected_output : int) : test =
   name >:: fun _ ->
   assert_equal expected_output
-    (user_balance (withdraw (from_json json) user curr amt) user curr)
+    (user_balance (withdraw user curr amt (from_json json)) user curr)
     ~printer:string_of_int
 
 let user_balance_test (name : string) (json : string) (user : string)
