@@ -14,10 +14,11 @@ type command =
   | Home
   | Account
   | Admin
+  | View_Users
   | Deposit of object_phrase
   | Withdraw of object_phrase
   | View_Bal
-  | View_Users
+  | Load
   | Order 
   | Graph 
   | Quit
@@ -36,6 +37,7 @@ let com z =
   | "view_users" -> View_Users
   | "order" -> Order
   | "graph" -> Graph
+  | "load" -> Load
   | _ -> raise Malformed
 
 let coms z sl =
@@ -95,6 +97,7 @@ let rec home (db : Database.t) (u : string) =
       home db u
 
 and view_users db u =
+ANSITerminal.(erase Screen);
   print_string (print_users (users db));
   admin db u
 
@@ -103,17 +106,19 @@ and admin db u =
     "\n\n\
     \ \n\
     \    Pleae type your preference to select a menu \n\n\
-    \    - View Users\n\n\
-    \    - Home\n";
-  print_string "> ";
+    \    - View_users\n\n\
+    \    - Home\n\n\n";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
       admin db u
-  | inp ->
-      (if "view users" = String.lowercase_ascii inp then view_users db u
-      else if "home" = String.lowercase_ascii inp then home db u
-      else ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n"));
+  | t -> match parse t with
+      | exception Malformed -> account db u
+      | exception Empty -> account db u
+      | View_Users -> view_users db u
+      | Home -> home db u
+      | _ -> ANSITerminal.(print_string [ blue; Bold ] "\nInvalid input. \n");
       admin db u
 
 and quit db u =
@@ -123,9 +128,10 @@ and quit db u =
   exit 0
 
 and withdraw__ db u curr =
+ANSITerminal.(erase Screen);
   print_endline "How much would you like to withdraw:\n";
   print_endline "Type an amount \n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -134,9 +140,10 @@ and withdraw__ db u curr =
   | inp -> account (withdraw u curr (int_of_string inp) db) u
 
 and withdraw_ db u =
+ANSITerminal.(erase Screen);
   print_endline "What would you like to withdrawl?:\n";
   print_endline "Type brb to withdraw brb or usd to withdraw usd \n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -151,9 +158,10 @@ and withdraw_ db u =
       withdraw_ db u
 
 and deposit__ db u curr =
+ANSITerminal.(erase Screen);
   print_endline "How much would you like to deposit:\n";
   print_endline "Type an amount \n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -162,9 +170,10 @@ and deposit__ db u curr =
   | inp -> account (deposit u curr (int_of_string inp) db) u
 
 and deposit_ db u =
+ANSITerminal.(erase Screen);
   print_endline "What would you like to deposit?:\n";
   print_endline "Type brb to deposit brb or usd to deposit usd \n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -179,11 +188,12 @@ and deposit_ db u =
       deposit_ db u
 
 and sell__order db u rate=
+ANSITerminal.(erase Screen);
   print_endline "Your BRB balance is:  ";
   print_int (user_balance db u "brb");
   print_endline " \n";
   print_endline "How much of this balance would you like to sell for USD\n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -193,11 +203,13 @@ and sell__order db u rate=
   
 
 and buy__order db u rate=
+ANSITerminal.(erase Screen);
   print_string "Your USD balance is:  ";
   print_int (user_balance db u "usd");
   print_endline " \n";
-  print_endline "How many BRB would you like to buy?\n";
-  print_string "> ";
+  print_string "\nHow many BRB would you like to buy at price: $";
+  print_string ((string_of_float rate) ^ " Usd/Brb");
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -206,10 +218,11 @@ and buy__order db u rate=
   | inp -> account (buy_order u (int_of_string inp) rate db) u
 
 and order__ db u curr= 
+ANSITerminal.(erase Screen);
   print_endline " \n";
   print_endline "What is you asking price in USD per BRB :\n";
-  print_endline "Type an amount Eg: 0.51\n";
-  print_string "> ";
+  print_endline "Type an amount between 0. and 1. Eg: 0.51\n";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -223,9 +236,10 @@ and order__ db u curr=
       order__ db u curr
 
 and order_ db u =
+ANSITerminal.(erase Screen);
   print_endline "Would you like to place a Buy or Sell?:\n";
-  print_endline "Type Buy to buy brb or sell to sell brb \n";
-  print_string "> ";
+  print_endline "Type Buy to buy brb or Sell to sell brb \n";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -241,6 +255,7 @@ and order_ db u =
 
 
 and graph_ db u =
+ANSITerminal.(erase Screen);
       print_database db u;
       print_endline " \n";
   print_string "Type exit to exit:  ";
@@ -248,21 +263,19 @@ and graph_ db u =
       | exception End_of_file ->
       print_endline redo;
       print_string u;
-      order_ db u
+      graph_ db u
   | inp -> if "exit" = String.lowercase_ascii inp then account db u
 
 and account (db : Database.t) (u : string) =
+ANSITerminal.(erase Screen);
   print_endline " \n";
   print_string "Current User: ";
   ANSITerminal.print_string [ ANSITerminal.blue ] u;
-  print_endline " \n";
-  print_string "Your USD balance is: $";
-  ANSITerminal.print_string [ ANSITerminal.blue ] (string_of_int (user_balance db u "usd"));
-  print_endline " \n";
-  print_string "Your BRB balance is: $";
-  ANSITerminal.print_string [ ANSITerminal.blue ] (string_of_int (user_balance db u "brb"));
-  print_endline " \n";
-  ANSITerminal.print_string [ ANSITerminal.red ] "\n Pleae select a menu";
+  print_string " | Your USD balance is: ";
+  ANSITerminal.print_string [ ANSITerminal.blue ] ("$"^(string_of_int (user_balance db u "usd")));
+  print_string " | Your BRB balance is: $";
+  ANSITerminal.print_string [ ANSITerminal.blue ] ("$"^(string_of_int (user_balance db u "brb")));
+  ANSITerminal.print_string [ ANSITerminal.red ] "\n\n Pleae select a menu\n";
   
   print_string
     "\ \n\
@@ -272,7 +285,7 @@ and account (db : Database.t) (u : string) =
     \    - Graph\n\n\
     \    - Home\n\n\
     \    - Quit\n";
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -292,16 +305,19 @@ and account (db : Database.t) (u : string) =
     end
 
 and login f =
+ANSITerminal.(erase Screen);
   print_endline "\nWould you like to login or create a new user?\n";
-  ANSITerminal.print_string [ ANSITerminal.black ] "Please enter\n";
-  ANSITerminal.print_string [ ANSITerminal.blue ] " - login username";
-  ANSITerminal.print_string [ ANSITerminal.black ] " to login\n";
-  ANSITerminal.print_string [ ANSITerminal.blue ] " - new_user username";
-  ANSITerminal.print_string [ ANSITerminal.black ] " to create a new user\n";
+  print_string "Current Users: ";
+  print_string (print_users (users f));
+  ANSITerminal.print_string [ ANSITerminal.black ] "\n\nPlease enter\n";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " - Login username";
+  ANSITerminal.print_string [ ANSITerminal.black ] " to login\n\n";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " - New_user username";
+  ANSITerminal.print_string [ ANSITerminal.black ] " to create a new user\n\n";
 
   (* print_endline "Type login [username] to login or new_user [username]
      \n"; *)
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file ->
       print_endline redo;
@@ -330,22 +346,52 @@ and create_da_file db =
   new_db_file (db_name db) "";
   login db
 
+and print_json_files data_folder = 
+    let files = Sys.readdir data_folder in
+    ANSITerminal.(erase Screen);
+    ANSITerminal.print_string [ ANSITerminal.black ] "\nCurrent Databases: ";
+    Array.iter (fun file ->
+      if Filename.check_suffix file ".json" then
+        ANSITerminal.print_string [ ANSITerminal.blue ] ("["^(Filename.chop_suffix file ".json")^"],  " )
+    ) files;
+  ANSITerminal.print_string [ ANSITerminal.black ] "\n\n\nPlease enter: \n\n -";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " Database name ";
+  ANSITerminal.print_string [ ANSITerminal.black ] "to load database: ";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " [name]\n\n - ";
+  print_string ">  ";
+  match read_line () with
+  | exception End_of_file -> ()
+  | t -> begin
+      match parse t with
+      | exception Malformed ->
+          print_endline redo;
+          main ()
+      | exception Empty ->
+          print_endline redo;
+          main ()
+      | Database x ->
+          Yojson.Basic.from_file (data_dir_prefix ^ List.hd x ^ ".json")
+          |> Yojson.Basic.to_string |> from_json |> login
+      | _ ->
+          print_endline redo;
+          main ()
+    end
+
 (** [main ()] prompts for the game to play, then starts it. *)
 and main () =
-  ANSITerminal.print_string [ ANSITerminal.red ]
-    "\n\nWelcome to the trading platform.\n";
-  ANSITerminal.print_string [ ANSITerminal.black ] "\nPlease enter \n -";
-  ANSITerminal.print_string [ ANSITerminal.blue ] " database name ";
-  ANSITerminal.print_string [ ANSITerminal.black ] "to load database";
-  ANSITerminal.print_string [ ANSITerminal.blue ] " name\n - ";
-  ANSITerminal.print_string [ ANSITerminal.blue ] "new_database name";
+ANSITerminal.(erase Screen);
+  ANSITerminal.(print_string [ red; Bold ] "\n\nWelcome to the trading platform.\n");
+  ANSITerminal.print_string [ ANSITerminal.black ] "\nPlease enter: \n\n -";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " Load ";
+  ANSITerminal.print_string [ ANSITerminal.black ] "to load an existing database \n\n -";
+  ANSITerminal.print_string [ ANSITerminal.blue ] " New_database name";
   ANSITerminal.print_string [ ANSITerminal.black ]
-    " to create new database with new";
-  ANSITerminal.print_string [ ANSITerminal.blue ] " name\n";
+    " to create new database with name: ";
+  ANSITerminal.print_string [ ANSITerminal.blue ] "name\n\n\n";
 
   (* print_endline "Please enter [database [database name]] to load a database
      \n\n\ \ or [new_database database] to create a new one"; *)
-  print_string "> ";
+  print_string ">  ";
   match read_line () with
   | exception End_of_file -> ()
   | t -> begin
@@ -357,14 +403,12 @@ and main () =
           print_endline redo;
           main ()
       | NewDatabase x -> create_da_file (new_database (List.hd x))
-      | Database x ->
-          Yojson.Basic.from_file (data_dir_prefix ^ List.hd x ^ ".json")
-          |> Yojson.Basic.to_string |> from_json |> login
+      | Load -> print_json_files "data"
       | _ ->
           print_endline redo;
           main ()
     end
-
+    
 (* Execute the (from_json (Yojson.Basic.from_file (data_dir_prefix ^ str ^
    ".json"))) engine. *)
 
