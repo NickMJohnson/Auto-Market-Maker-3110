@@ -24,3 +24,9 @@ zip:
 clean:
 	dune clean
 	rm -f Final_project
+
+doc:
+	dune build @doc
+
+opendoc: doc
+	@bash opendoc.sh	
