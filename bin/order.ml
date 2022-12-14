@@ -7,7 +7,7 @@ let print_order_graph (buy_orders: order list) (sell_orders: order list) =
   let max_amount_b = List.fold_left (fun acc order -> max acc (order.amount/5)) 0 buy_orders in
   let max_rate_s = List.fold_left (fun acc order -> max acc ((int_of_float (order.rate *. 100.))/5)) 0 sell_orders in
   let max_amount_s = List.fold_left (fun acc order -> max acc (order.amount/5)) 0 sell_orders in
-  let min_rate_s = List.fold_left (fun acc order -> max acc (order.rate)) (float_of_int max_rate_s)sell_orders in
+  let min_rate_s = List.fold_left (fun acc order -> min acc ((int_of_float (order.rate *. 100.))/5)) max_rate_s sell_orders in
   let max_rate = max max_rate_b max_rate_s in
   let max_amount = max max_amount_b max_amount_s in
 
