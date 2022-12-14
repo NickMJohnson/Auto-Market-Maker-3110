@@ -1,0 +1,9 @@
+Hello!
+Our Code is in the:
+
+bin/main.ml bin/order.ml src/database.ml src/database.mli and test/test.ml
+
+files. 
+
+Our LOC requirement was reduced to 800 LOC because Anthony Kim dropped the class
+and we now only have two group members. Thanks!
