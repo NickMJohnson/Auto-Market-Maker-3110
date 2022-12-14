@@ -1,36 +1,43 @@
-(*TODO: Order book {buy order list; sell order list} {name amt rate time} *)
+(** Trading platform between USD and BRB implemented through a json database. *)
 
-type user = {
-  name : string;
-  usd : int;
-  brb : int;
-}
-
-and t = {
+type t = {
   db_name : string;
   users : user list;
   orders : order_book;
 }
+(**The type of an object representing a bid/ask database for USD and BRB with
+   users and orders. [db_name] is the name of the database.*)
+
+and user = {
+  name : string;
+  usd : int;
+  brb : int;
+}
+(**The type a databse user. A user has a name, and a balance of USD and BRB. *)
+
+and order_book = {
+  buy_orders : order list;
+  sell_orders : order list;
+}
+(**The type of an order book. An order book has a list of buy orders and a list
+   of sell orders. An order in buy_orders is a buy order, and in sell_orders is
+   a sell order*)
 
 and order = {
   user : string;
   amount : int;
   rate : float;
 }
-
-and order_book = {
-  buy_orders : order list;
-  sell_orders : order list;
-}
-(**the abstract type of an object representing a bid/ask database with users and
-   orders. Users have usernames and a balance in cents of BRB and USD*)
+(**The type an order. A user has a name, an amount requested to buy or sell (in
+   BRB) and a rate (in USD per BRB)*)
 
 val new_database : string -> t
-(**[new_database] is a database of type t with db_name name with no users or
-   orders*)
+(**[new_database db_name] is a database of type t with name db_name with no
+   users or orders. Requires: db_name must be nonempty *)
 
 val from_json : string -> t
-(**takes in a json string, creates abstract db type t*)
+(**[from_json json] is the databse represented by [json]. Requires: json is
+   valid json representing a database*)
 
 val db_name : t -> string
 (**[db_name db] is the database's name*)
@@ -42,33 +49,33 @@ val users : t -> string list
 (**[users db] is a list of the usernames of all the users in db*)
 
 val deposit : string -> string -> int -> t -> t
-(**[deposit  name curr amt db] is db with user name having amt more of currency
-   curr Requires: name is valid name of a user in db, curr is either USD or BRB*)
+(**[deposit name curr amt db] is db with user name having amt more of currecny
+   curr. Requires: name is valid name of a user in db, curr is either "USD" or
+   "BRB"*)
 
 val withdraw : string -> string -> int -> t -> t
 (**[withdraw name curr amt db] is db with user name having amt less of currency
-   curr Requires: name is valid name of a user in db, curr is either usd or brb*)
+   curr. Requires: name is valid name of a user in db, curr is either "usd" or
+   "brb"*)
 
 val user_balance : t -> string -> string -> int
-(** Example: [user_balance db tony brb] is tony's balance of brbs (in brb cents) *)
+(** [user_balance db name curr] is name's balance of curr. Requires: curr is
+    either "usd" or "brb" *)
 
 val buy_order : string -> int -> float -> t -> t
-(**[buy_order user
-   amt rate db] is db with a buy order: user looking to buy
-   amt BRBs with exchange rate [rate]. User's USD balance is lowered by amt *
-   rate, and the order is added to their account. Int Requires: amt is an
-   integer > 0 , rate is an float > 0 and <= 1, name is a valid user*)
+(**[buy_order user amt rate db] is db with buy order from user looking to buy
+   amt BRBs with exchange rate [rate]. The order is filled as much as possible
+   by any sell orders with a rate lower than the order's rate. When an order is
+   filled, the appropriate amout of each currency is transferered between the
+   two trading accounts. Int Requires: amt is an integer > 0 , rate is an float
+   > 0 and <= 1, name is a valid user*)
 
 val sell_order : string -> int -> float -> t -> t
-(**[sell_order db user
-   amt rate] is db looking to sell amt BRBs with exchange
-   rate [rate]. User's BRB balance is lowered by amt, and the order is added to
-   their account. Requires: amt is an integer > 0 , rate is an integer > 0 and
-   <= 100 *)
-
-(* val account_status : t -> string -> user *)
-(**[acccount_status db user] returns the user record with name user in db.
-   Requires: name is a valid user*)
+(**[sell_order db user amt rate] is db looking to sell amt BRBs with exchange
+   rate [rate]. The order is filled as much as possible by any buy orders with a
+   rate higher than the order's rate. When an order is filled, the appropriate
+   amout of each currency is transferered between the two trading accounts.
+   Requires: amt is an integer > 0 , rate is an integer > 0 and <= 100 *)
 
 val to_json : t -> string
-(**[to_json db] is a json in string form that represents db.t*)
+(**[to_json db] is a string json that represents db.t*)
