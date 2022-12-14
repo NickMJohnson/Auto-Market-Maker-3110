@@ -1,1 +1,8 @@
-{"db_name":"empty","users":[],"orders":{"buy_orders":[],"sell_orders":[]}}
+{
+  "db_name": "empty",
+  "users": [],
+  "orders": {
+    "buy_orders": [],
+    "sell_orders": []
+  }
+}

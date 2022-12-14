@@ -1,1 +1,8 @@
-{"db_name":"order_example","users":[],"orders":{"buy_orders":[],"sell_orders":[]}}
+{
+  "db_name": "order_example",
+  "users": [],
+  "orders": {
+    "buy_orders": [],
+    "sell_orders": []
+  }
+}
