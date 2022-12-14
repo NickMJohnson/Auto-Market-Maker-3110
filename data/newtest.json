@@ -1,1 +1,14 @@
-{"db_name":"newtest","users":[{"name":"tony","usd":-50,"brb":50}],"orders":{"buy_orders":[],"sell_orders":[]}}
+{
+  "db_name": "newtest",
+  "users": [
+    {
+      "name": "tony",
+      "usd": -50,
+      "brb": 50
+    }
+  ],
+  "orders": {
+    "buy_orders": [],
+    "sell_orders": []
+  }
+}
