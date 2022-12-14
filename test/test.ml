@@ -111,16 +111,16 @@ let database_tests =
       {|users in new_user Jack in 3usersexample is [Jack, Tony, Nick, Anthony]|}
       bros "Jack"
       [ "Jack"; "Tony"; "Nick"; "Anthony" ];
-    db_deposit_test {|deposit 100 USD to Nick's USD balance is 100|} bros "USD"
+    db_deposit_test {|deposit 100 USD to Nick's USD balance is 100|} bros "usd"
       "Nick" 100 100;
     db_deposit_test {|deposit 50 USD to Nick's USD balance is 50|} bros "usd"
       "Nick" 50 50;
     db_deposit_test {|deposit 70 BRB to Nick's USD balance is 71|} bros "brb"
       "Nick" 70 71;
-    db_deposit_test {|deposit 100 USD to Nick's USD balance is 100|} bros "BRB"
+    db_deposit_test {|deposit 100 USD to Nick's USD balance is 100|} bros "brb"
       "Tony" 10 20010;
     db_withdraw_test {|withdraw 400 USD to Tony's USD balance is 1000|} bros
-      "USD" "Tony" 400 1000;
+      "usd" "Tony" 400 1000;
     db_withdraw_test {|withdraw 10000 BRB to Tony's BRB balance is 50|} bros
       "brb" "Tony" 10000 10000;
     db_withdraw_test {|withdraw 50 USD to Nick's BRB balance is -50|} bros "usd"
@@ -128,15 +128,15 @@ let database_tests =
     db_withdraw_test {|withdraw 70 BRB to Nick's BRB balance is -69|} bros "brb"
       "Nick" 70 (-69);
     user_balance_test {|user balance of Nick's USD is 0|} bros "Nick" "usd" 0;
-    user_balance_test {|user balance of Tony's USD is 1400|} bros "Tony" "USD"
+    user_balance_test {|user balance of Tony's USD is 1400|} bros "Tony" "usd"
       1400;
     user_balance_test {|user balance of Anthony's USD is 1500000|} bros
-      "Anthony" "uSd" 1500000;
+      "Anthony" "usd" 1500000;
     user_balance_test {|user balance of Nick's BRB is 1|} bros "Nick" "brb" 1;
-    user_balance_test {|user balance of Tony's BRB is 20000|} bros "Tony" "BRB"
+    user_balance_test {|user balance of Tony's BRB is 20000|} bros "Tony" "brb"
       20000;
     user_balance_test {|user balance of Anthony's BRB is 2000000|} bros
-      "Anthony" "bRb" 2000000;
+      "Anthony" "brb" 2000000;
   ]
 let tests1 =[
     "new_database" >:: (fun _ ->

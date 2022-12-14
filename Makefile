@@ -29,8 +29,5 @@ doc:
 	dune build @doc
 
 opendoc: doc
-<<<<<<< HEAD
 	@bash opendoc.sh	
-=======
 	@bash opendoc.sh	
->>>>>>> b4b01de6d4f51616ceffc858df1d4f722b3b769d
