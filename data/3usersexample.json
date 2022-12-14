@@ -1,20 +1,25 @@
 {
-  "db_name": "3usersexample",
-  "users": [
-    {
-      "name": "Tony",
-      "usd": 1400,
-      "brb": 20000
-    },
-    {
-      "name": "Nick",
-      "usd": 0,
-      "brb": 1
-    },
-    {
-      "name": "Anthony",
-      "usd": 1500000,
-      "brb": 2000000
-    }
-  ]
+    "db_name": "3usersexample",
+    "users": [
+      {
+        "name": "Tony",
+        "usd": 1400,
+        "brb": 20000
+      },
+      {
+        "name": "Nick",
+        "usd": 0,
+        "brb": 1
+      },
+      {
+        "name": "Anthony",
+        "usd": 1500000,
+        "brb": 2000000
+      }
+    ],
+    "orders": {
+        "buy_orders": [],
+        "sell_orders": []
 }
+
+  }
