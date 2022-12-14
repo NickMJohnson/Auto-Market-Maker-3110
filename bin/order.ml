@@ -87,7 +87,10 @@ else ANSITerminal.print_string [ ANSITerminal.blue] symbol
   print_newline ();
   print_string "Market Price: 0.";
   print_int (((min_rate_s + max_rate_b)/2)*5);
-  print_string " Usd/Brb"
+  print_string " Usd/Brb";
+  print_newline ();
+  print_string "Maximum order amount";
+  print_int max_amount
 
   (*let orders = {
     buy_orders = [
@@ -116,6 +119,4 @@ sell_orders = [
   ]
   }*)
 
-let print_database db u = print_order_graph db.orders.buy_orders db.orders.sell_orders
-
-
+let print_database db u = print_order_graph db.orders.buy_orders db.orders.sell_orders;
