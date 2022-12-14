@@ -1,0 +1,1 @@
+{"db_name":"test2","users":[{"name":"nick","usd":100,"brb":70}],"orders":{"buy_orders":[{"user":"nick","amount":20,"rate":0.8},{"user":"nick","amount":20,"rate":0.6},{"user":"nick","amount":500,"rate":0.5},{"user":"nick","amount":29,"rate":0.4}],"sell_orders":[{"user":"nick","amount":10,"rate":0.6},{"user":"nick","amount":20,"rate":0.8]}}
